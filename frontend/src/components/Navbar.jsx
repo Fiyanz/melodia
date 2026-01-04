@@ -1,28 +1,41 @@
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Music } from "lucide-react";
 
 export default function Navbar({ account, onConnect }) {
+  const navigate = useNavigate();
+
   return (
-    <nav className="flex justify-between items-center px-8 py-4 border-b">
-      <h1 className="font-bold text-xl">🎵 Melodia</h1>
+    <nav className="fixed top-0 w-full bg-black/30 backdrop-blur-md border-b border-white/10 z-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
 
-      <div className="flex gap-6 items-center">
-        <Link to="/">Home</Link>
-        <Link to="/marketplace">Marketplace</Link>
-        <Link to="/creator">Creator</Link>
-        <Link to="/portfolio">Portfolio</Link>
+          <div
+            onClick={() => navigate("/")}
+            className="flex items-center space-x-2 cursor-pointer"
+          >
+            <Music className="w-8 h-8 text-purple-400" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Melodia
+            </span>
+          </div>
 
-        {!account ? (
+          <div className="hidden md:flex space-x-8 text-white">
+            <Link to="/" className="hover:text-purple-400 transition">Home</Link>
+            <Link to="/marketplace" className="hover:text-purple-400 transition">Marketplace</Link>
+            <Link to="/creator" className="hover:text-purple-400 transition">Creator Hub</Link>
+            <Link to="/portfolio" className="hover:text-purple-400 transition">Portfolio</Link>
+          </div>
+
           <button
             onClick={onConnect}
-            className="px-4 py-2 bg-black text-white rounded-lg"
+            className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition shadow-lg shadow-purple-500/30"
           >
-            Connect Wallet
+            {account
+              ? account.slice(0, 6) + "..." + account.slice(-4)
+              : "Connect Wallet"}
           </button>
-        ) : (
-          <span className="text-sm">
-            {account.slice(0, 6)}...{account.slice(-4)}
-          </span>
-        )}
+        </div>
       </div>
     </nav>
   );

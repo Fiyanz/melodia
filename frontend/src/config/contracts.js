@@ -1,6 +1,10 @@
-import MusicRoyaltyABI from "../abi/MusicRoyalty.json";
-import MusicIPNFTABI from "../abi/MusicIPNFT.json";
-import KYCRegistryABI from "../abi/KYCRegistry.json";
+import MusicRoyaltyArtifact from "../artifacts/contracts/MusicRoyalty.sol/MusicRoyalty.json";
+import MusicIPNFTArtifact from "../artifacts/contracts/MusicIPNFT.sol/MusicIPNFT.json";
+import KYCRegistryArtifact from "../artifacts/contracts/KYCRegistry.sol/KYCRegistry.json";
+
+const MusicRoyaltyABI = MusicRoyaltyArtifact.abi;
+const MusicIPNFTABI = MusicIPNFTArtifact.abi;
+const KYCRegistryABI = KYCRegistryArtifact.abi;
 
 export const CONTRACTS = {
   musicRoyalty: {
@@ -8,11 +12,11 @@ export const CONTRACTS = {
     abi: MusicRoyaltyABI,
   },
   musicIPNFT: {
-    address: "0x87d81aEAD1B6632Ed84a99426a260439aeE20368",
+    address: "0x57cFb035C6DFCB71f01AE6EA24196328E8b352f6",
     abi: MusicIPNFTABI,
   },
   kycRegistry: {
-    address: "0xfeDaf49154eCc07b315B527C194950c8e6F0b3B3",
+    address: "0x381D28F516f3951203A29E3B636e00B6e79AC220",
     abi: KYCRegistryABI,
   },
 };

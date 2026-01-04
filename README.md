@@ -1,63 +1,80 @@
-# Melodia - Decentralized Music Royalty Platform 🎵
+# Melodia - Decentralized Music Royalty Platform
 
-**Melodia** adalah platform Web3 yang memungkinkan musisi untuk mentokenisasi karya mereka, membagi kepemilikan hak cipta (royalti) kepada penggemar atau investor secara transparan menggunakan teknologi Blockchain Ethereum.
+Platform Web3 untuk tokenisasi royalti musik. Musisi dapat menjual bagian kepemilikan royalti lagu kepada investor/penggemar secara transparan menggunakan Ethereum blockchain.
 
-![Melodia DApp Demo](./frontend/public/vite.svg)
+## Fitur Utama
 
----
+- **Creator Hub**: Deploy kontrak royalti untuk lagu baru
+- **Marketplace**: Jual beli kepemilikan royalti lagu
+- **Portfolio**: Lihat aset musik yang dimiliki
+- **Admin Dashboard**: Approve/reject listing requests
 
-## 🚀 Fitur Utama
+## Quick Start
 
-* **Creator Hub**: Musisi dapat mempublikasikan lagu dan membuat kontrak royalti otomatis.
-* **Invest / Buy**: Penggemar dapat membeli saham lagu (Token Royalti) dan memiliki bukti kepemilikan di Blockchain.
-* **Portfolio**: Dashboard untuk melihat aset musik yang dimiliki dan nilai sahamnya.
-* **Transparansi**: Semua data kepemilikan dan pembagian hasil tercatat di blockchain.
-
----
-
-## 📂 Dokumentasi
-
-Dokumentasi lengkap proyek ini tersedia di folder `docs/`:
-
-* [**Smart Contracts & Architecture**](./docs/SMART_CONTRACTS.md) → Penjelasan detail tentang bagaimana kontrak bekerja (KYC, Royalty Token, NFT).
-* [**Alur Kerja & Deployment**](./docs/DEPLOYMENT.md) → Cara menghubungkan frontend ke kontrak yang sudah di-deploy di Sepolia.
-
----
-
-## 🛠️ Menjalankan Frontend
-
-1. **Install Dependencies**
+### 1. Install Dependencies
 
 ```bash
 npm install
 cd frontend && npm install
 ```
 
-3. **Jalankan Frontend**
+### 2. Setup Environment
+
+Buat file `.env` di root:
+
+```env
+PRIVATE_KEY=0xYOUR_PRIVATE_KEY
+SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
+```
+
+### 3. Deploy Contracts (Sepolia)
+
+```bash
+npx hardhat run scripts/deploy-admin.js --network sepolia
+```
+
+Update alamat di `frontend/src/config/contracts.js`
+
+### 4. Jalankan Frontend
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Buka browser di `http://localhost:5173`.
+Buka http://localhost:5173
 
-4. **Connect Wallet**
+## Network
 
-* Klik tombol **Connect Wallet** di HomePage / Creator Hub.
-* Pastikan MetaMask Anda terhubung ke **Sepolia Testnet**.
-* Import wallet Dev (seed phase)
-```bash
+- **Network**: Sepolia Testnet
+- **Chain ID**: 11155111
 
-remove manage false nest crumble glide sibling vapor spider glide pudding under
+## Contract Addresses (Current Deployment)
 
-```
+| Contract | Address |
+|----------|---------|
+| KYCRegistry | `0x381D28F516f3951203A29E3B636e00B6e79AC220` |
+| MusicIPNFT | `0x57cFb035C6DFCB71f01AE6EA24196328E8b352f6` |
 
+## Admin Access
 
----
+Wallet yang deploy MusicIPNFT otomatis menjadi admin.
 
-## 📜 Lisensi
+Login: http://localhost:5173/admin
 
-MIT License
+## Dokumentasi
 
----
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Cara deploy dan setup
+- [Smart Contracts](./docs/SMART_CONTRACTS.md) - Arsitektur kontrak
+- [Roadmap](./docs/ROADMAP.md) - Rencana pengembangan
+
+## Tech Stack
+
+- **Frontend**: React + Vite + TailwindCSS
+- **Smart Contracts**: Solidity 0.8.20
+- **Framework**: Hardhat
+- **Library**: ethers.js v6
+
+## License
+
+MIT

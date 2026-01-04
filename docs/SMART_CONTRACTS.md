@@ -1,39 +1,134 @@
 # Arsitektur Smart Contract
 
-Melodia terdiri dari **3 Smart Contract Utama** yang saling berinteraksi untuk menciptakan ekosistem royalti musik yang terdesentralisasi.
+Melodia terdiri dari **3 Smart Contract** yang saling berinteraksi.
 
-## 1. `KYCRegistry.sol` (Gerbang Keamanan)
-*   **Fungsi**: Menyimpan daftar user yang sudah terverifikasi (Whitelisting).
-*   **Tujuan**: Memastikan hanya user yang sah yang bisa berpartisipasi (opsional, untuk kepatuhan regulasi/KYC).
-*   **Lokasi**: `contracts/KYCRegistry.sol`
+## Contracts Overview
 
-## 2. `MusicRoyalty.sol` (Token Saham)
-*   **Jenis**: ERC-20 Token (Standard).
-*   **Fungsi**:
-    *   Setiap lagu yang di-publish akan men-deploy **1 Kontrak MusicRoyalty unik**.
-    *   Mewakili "Saham" dari lagu tersebut.
-    *   Jika lagu "Cinta Abadi" di-publish dengan 1000 saham, maka akan ada 1000 Token "Cinta Abadi" yang dicetak.
-    *   Token ini yang diperjualbelikan investor dan disimpan di wallet mereka.
-*   **Lokasi**: `contracts/MusicRoyalty.sol`
+### 1. KYCRegistry.sol
 
-## 3. `MusicIPNFT.sol` (Sertifikat Master)
-*   **Jenis**: ERC-721 (NFT Standard).
-*   **Fungsi**:
-    *   Bertindak sebagai "Sertifikat Hak Cipta Master" (Induk).
-    *   Menyimpan Metadata utama: Judul Lagu, Artis, Link File (IPFS).
-    *   Menyimpan link ke **Alamat Kontrak Royalty** (ERC-20) yang terkait.
-*   **Alur Data**:
-    *   Frontend membaca NFT ini untuk menampilkan daftar lagu di menu "Explore".
-    *   Dari NFT ini, frontend mendapatkan alamat kontrak royalti untuk mengecek harga dan saham.
-*   **Lokasi**: `contracts/MusicIPNFT.sol`
+**Fungsi**: Whitelist user yang terverifikasi
+
+```solidity
+// Verify user
+function verify(address user) external onlyOwner;
+
+// Check verification status
+function isVerified(address user) external view returns (bool);
+```
+
+**Address (Sepolia)**: `0x381D28F516f3951203A29E3B636e00B6e79AC220`
 
 ---
 
-## Diagram Alur "Publish Song"
+### 2. MusicRoyalty.sol
 
-1.  **User Input**: Musisi mengisi Judul, Artis, Total Saham.
-2.  **Step 1 (Deploy)**: Frontend memanggil Factory untuk deploy kontrak `MusicRoyalty` baru.
-    *   *Result*: Alamat Kontrak Baru (misal: `0xABC...`).
-3.  **Step 2 (Mint)**: Frontend memanggil `MusicIPNFT` untuk mint 1 NFT baru.
-    *   Data: `MetadataURI`, `0xABC...` (Alamat Royalti).
-4.  **Finish**: Lagu terdaftar dan saham (token) dikirim ke wallet musisi.
+**Jenis**: Custom Token (ERC-20 style)
+
+**Fungsi**: 
+- Setiap lagu memiliki 1 kontrak MusicRoyalty unik
+- Token mewakili "Saham" kepemilikan royalti
+- Investor bisa buy/sell shares
+
+**Constructor Parameters**:
+```solidity
+constructor(
+    string memory _name,       // Token name (e.g., "My Song Token")
+    string memory _symbol,     // Symbol (e.g., "MST")
+    address _kycRegistry,      // KYC contract address
+    string memory _title,      // Song title
+    string memory _artist,     // Artist name
+    uint256 _totalRoyaltyValue,// Total value in wei
+    uint256 _totalShares,      // Total shares (e.g., 1000 * 1e18)
+    string memory _legalDocument // IPFS URI for legal docs
+)
+```
+
+**Key Functions**:
+```solidity
+// Buy shares
+function buyShares(uint256 amount) external payable;
+
+// Set price per share (admin only)
+function setPricePerShare(uint256 price) external onlyAdmin;
+
+// Transfer shares
+function transfer(address to, uint256 amount) external;
+```
+
+---
+
+### 3. MusicIPNFT.sol
+
+**Jenis**: ERC-721 NFT
+
+**Fungsi**:
+- Sertifikat Hak Cipta Master
+- Menyimpan metadata: judul, artis, IPFS link
+- Menyimpan link ke kontrak MusicRoyalty
+
+**Address (Sepolia)**: `0x57cFb035C6DFCB71f01AE6EA24196328E8b352f6`
+
+**Key Functions**:
+```solidity
+// Request listing (creator)
+function requestListing(
+    string calldata _title,
+    string calldata _artist,
+    string calldata _metadataURI,
+    address _royaltyContract
+) external;
+
+// Approve listing (admin only)
+function approveListing(uint256 _requestId) external onlyOwner;
+
+// Get song data
+function getMusicIP(uint256 tokenId) external view returns (MusicIP memory);
+
+// Get all pending requests
+function getPendingRequests() external view returns (Request[] memory);
+```
+
+---
+
+## Workflow Diagram
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Creator   │────>│ MusicRoyalty │     │   Investor  │
+│   (Deploy)  │     │  (ERC-20)    │<────│   (Buy)     │
+└─────────────┘     └──────────────┘     └─────────────┘
+       │                   │
+       │ requestListing    │ link to
+       ▼                   ▼
+┌─────────────┐     ┌──────────────┐
+│  MusicIPNFT │<────│    Admin     │
+│  (ERC-721)  │     │  (Approve)   │
+└─────────────┘     └──────────────┘
+```
+
+## Alur Publish Song
+
+1. **Creator Request**:
+   - Deploy MusicRoyalty contract via Creator Hub
+   - Call `MusicIPNFT.requestListing()`
+   - Status: Pending
+
+2. **Admin Approval**:
+   - Admin buka Admin Dashboard
+   - Call `approveListing(requestId)`
+   - NFT di-mint ke wallet Creator
+
+3. **Investor Buy**:
+   - Buka song detail
+   - Call `buyShares()` + kirim ETH
+   - Shares transfer ke investor
+
+## Solidity Version
+
+```
+pragma solidity 0.8.20;
+```
+
+## Dependencies
+
+- OpenZeppelin Contracts (ERC721, Ownable)

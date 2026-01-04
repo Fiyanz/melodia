@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.20;
 
 contract MusicRoyalty {
 
@@ -56,21 +56,21 @@ contract MusicRoyalty {
         string memory _title,
         string memory _artist,
         uint256 _totalRoyaltyValue,
-        uint256 _totalShares
+        uint256 _totalShares,
+        string memory _legalDocument
     ) {
-        require(_kycRegistry != address(0), "Invalid KYC registry");
+        kycRegistry = _kycRegistry; // Allow 0x0 for now
 
         name = _name;
         symbol = _symbol;
         admin = msg.sender;
-        kycRegistry = _kycRegistry;
 
         music = MusicInfo({
             title: _title,
             artist: _artist,
             totalRoyaltyValue: _totalRoyaltyValue,
             totalShares: _totalShares,
-            legalDocument: "",
+            legalDocument: _legalDocument,
             isActive: true
         });
 
@@ -78,6 +78,14 @@ contract MusicRoyalty {
         balances[msg.sender] = _totalShares;
 
         emit Transfer(address(0), msg.sender, _totalShares);
+    }
+
+    function setKYCRegistry(address _kyc) external onlyAdmin {
+        kycRegistry = _kyc;
+    }
+    
+    function setAdmin(address _newAdmin) external onlyAdmin {
+        admin = _newAdmin;
     }
 
     function balanceOf(address _owner) public view returns (uint256) {
@@ -159,6 +167,36 @@ contract MusicRoyalty {
 
     function setLegalDocument(string calldata _ipfsHash) external onlyAdmin {
         music.legalDocument = _ipfsHash;
+    }
+
+    // ==========================================
+    // DEMO FEATURES (Point 5 Implementation)
+    // ==========================================
+
+    uint256 public pricePerShare;
+
+    event SharesPurchased(address indexed buyer, uint256 amount, uint256 price);
+
+    function setPricePerShare(uint256 _price) external onlyAdmin {
+        pricePerShare = _price;
+    }
+
+    function buyShares(uint256 _amount) external payable notFrozen(msg.sender) { // Removed onlyVerified for demo ease if needed, or keep it
+        require(pricePerShare > 0, "Price not set");
+        // Calculates cost: (amount * pricePerToken) / 1e18
+        uint256 cost = (_amount * pricePerShare) / 1 ether; 
+        require(msg.value >= cost, "Insufficient payment");
+        require(balances[admin] >= _amount, "Admin has insufficient shares");
+        
+        // Transfer shares from Admin to Buyer
+        balances[admin] -= _amount;
+        balances[msg.sender] += _amount;
+
+        // Emit event
+        emit SharesPurchased(msg.sender, _amount, pricePerShare);
+        
+        // Emit Transfer event for standard ERC compliance tracking
+        emit Transfer(admin, msg.sender, _amount);
     }
 
     /// ========================

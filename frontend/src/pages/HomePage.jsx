@@ -1,9 +1,34 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Music, Coins, TrendingUp, Shield, Users, Zap } from "lucide-react";
+import { ethers } from "ethers";
+import { CONTRACTS } from "../config/contracts";
 
 export default function HomePage({ account, onConnect }) {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalSongs: "0",
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        if (typeof window.ethereum !== "undefined") {
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const contract = new ethers.Contract(
+            CONTRACTS.musicIPNFT.address,
+            CONTRACTS.musicIPNFT.abi,
+            provider
+          );
+          const total = await contract.tokenCounter();
+          setStats(prev => ({ ...prev, totalSongs: total.toString() }));
+        }
+      } catch (error) {
+        // console.error("Error fetching stats:", error);
+      }
+    }
+    fetchStats();
+  }, []);
 
   return (
     <div className="relative min-h-screen text-white overflow-hidden">
@@ -20,41 +45,7 @@ export default function HomePage({ account, onConnect }) {
       {/* CONTENT */}
       <div className="relative z-10">
 
-        {/* NAVBAR */}
-        <nav className="fixed top-0 w-full bg-black/30 backdrop-blur-md border-b border-white/10 z-50">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex items-center justify-between h-16">
-
-              <div
-                onClick={() => navigate("/")}
-                className="flex items-center space-x-2 cursor-pointer"
-              >
-                <Music className="w-8 h-8 text-purple-400" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  Melodia
-                </span>
-              </div>
-
-              <div className="hidden md:flex space-x-8">
-                <Link to="/" className="hover:text-purple-400">Home</Link>
-                <Link to="/marketplace" className="hover:text-purple-400">Marketplace</Link>
-                <Link to="/creator" className="hover:text-purple-400">Creator Hub</Link>
-                <Link to="/portfolio" className="hover:text-purple-400">Portfolio</Link>
-              </div>
-
-              <button
-                onClick={onConnect}
-                className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:scale-105 transition"
-              >
-                {account
-                  ? account.slice(0, 6) + "..." + account.slice(-4)
-                  : "Connect Wallet"}
-              </button>
-            </div>
-          </div>
-        </nav>
-
-        {/* HERO */}
+        {/* HERO (Navbar removed) */}
         <section className="pt-32 pb-24 px-6 text-center">
           <div className="max-w-7xl mx-auto">
 
@@ -98,10 +89,10 @@ export default function HomePage({ account, onConnect }) {
         <section className="py-16 bg-black/20 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              ["1,234", "Songs Tokenized"],
-              ["$2.5M", "Royalties Paid"],
-              ["5,678", "Investors"],
-              ["892", "Artists"],
+              [stats.totalSongs, "Songs Tokenized"],
+              ["$2.5M", "Royalties Paid"], // Masih dummy karena belum ada logic payment
+              ["5,678", "Investors"],      // Masih dummy
+              ["892", "Artists"],          // Masih dummy
             ].map(([value, label]) => (
               <div key={label}>
                 <div className="text-4xl font-bold text-purple-400 mb-2">

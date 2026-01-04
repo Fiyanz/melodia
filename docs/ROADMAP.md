@@ -69,6 +69,9 @@ Saat ini frontend mengambil data dengan cara *looping* satu per satu ke blockcha
 ## 📅 Rencana Deployment
 
 1.  **Fase 1 (Selesai)**: Localhost Development.
-2.  **Fase 2**: Deploy Contracts ke **Sepolia Testnet**.
+2.  **Fase 2 (In Progress)**: Deploy Contracts ke **Sepolia Testnet**.
+    *   [x] Konfigurasi Hardhat & Environment Variables.
+    *   [x] Deploy ke Sepolia menggunakan Hardhat Ignition.
+    *   [x] Verifikasi Kontrak di Etherscan.
 3.  **Fase 3**: Audit Smart Contract (Keamanan).
 4.  **Fase 4**: Mainnet Launch (Ethereum / L2 seperti Arbitrum).

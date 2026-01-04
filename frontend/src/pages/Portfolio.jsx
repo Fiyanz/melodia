@@ -28,55 +28,83 @@ export default function Portfolio() {
     setAccount(accounts[0]);
   };
 
+  // Auto-detect connected wallet
+  useEffect(() => {
+    async function checkWallet() {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        }
+      }
+    }
+    checkWallet();
+  }, []);
+
   // ---------------- LOAD PORTFOLIO ----------------
   const loadPortfolio = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = new ethers.Contract(
-      CONTRACT_ADDRESS,
-      CONTRACT_ABI,
-      provider
-    );
+    try {
+        if (!window.ethereum || !account) return;
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        
+        // 1. Get All Songs from NFT Contract
+        const nftContract = new ethers.Contract(
+          CONTRACTS.musicIPNFT.address,
+          CONTRACTS.musicIPNFT.abi,
+          provider
+        );
+        const total = await nftContract.tokenCounter();
+        
+        const myHoldings = [];
+        let totalVal = 0; // Simplified for demo
+        let totalInv = 0; // Simplified for demo
 
-    const userHoldings = await contract.getUserHoldings(account);
+        // 2. Iterate and check balances on each Royalty Contract
+        for (let i = 1; i <= total; i++) {
+            const song = await nftContract.getMusicIP(i);
+            const royaltyContract = new ethers.Contract(
+                song.royaltyContract,
+                CONTRACTS.musicRoyalty.abi,
+                provider
+            );
 
-    let totalValue = 0;
-    let totalInvested = 0;
-    let totalRoyalties = 0;
+            const balance = await royaltyContract.balanceOf(account);
+            if (balance > 0) {
+                // Determine value (mock logic or fetch price)
+                 // NOTE: Real implementations would need an indexer. This loop is slow but functional for small demo.
+                 const pricePerShare = await royaltyContract.pricePerShare(); // Assuming public var
+                 
+                 const value = (balance * pricePerShare) / 1000000000000000000n; // ETH conversion
 
-    const parsed = userHoldings.map((h) => {
-      const invested = Number(ethers.formatEther(h.buyPrice)) * Number(h.sharesOwned);
-      const current = Number(ethers.formatEther(h.currentPrice)) * Number(h.sharesOwned);
-      const profit = current - invested;
+                 myHoldings.push({
+                     id: i,
+                     title: song.title,
+                     artist: song.artist,
+                     sharesOwned: balance.toString(),
+                     currentValue: value.toString(),
+                     investedAmount: "0", // Hard to track without events indexing
+                     profit: "0",
+                     profitPercent: "0",
+                     royaltiesEarned: "0" // Would need dividend tracking
+                 });
+            }
+        }
 
-      totalInvested += invested;
-      totalValue += current;
-      totalRoyalties += Number(ethers.formatEther(h.royaltiesEarned));
+        setHoldings(myHoldings);
+        setStats({
+            totalValue: "0", 
+            totalInvested: "0",
+            totalProfit: "0", 
+            profitPercentage: "0",
+            totalRoyalties: "0",
+            songsOwned: myHoldings.length
+        });
 
-      return {
-        id: Number(h.songId),
-        title: h.title,
-        artist: h.artist,
-        sharesOwned: Number(h.sharesOwned),
-        investedAmount: invested.toFixed(3),
-        currentValue: current.toFixed(3),
-        profit: profit.toFixed(3),
-        profitPercent: ((profit / invested) * 100).toFixed(2),
-        royaltiesEarned: ethers.formatEther(h.royaltiesEarned),
-      };
-    });
-
-    setHoldings(parsed);
-
-    setStats({
-      totalValue: totalValue.toFixed(3),
-      totalInvested: totalInvested.toFixed(3),
-      totalProfit: (totalValue - totalInvested).toFixed(3),
-      profitPercentage: ((totalValue - totalInvested) / totalInvested * 100).toFixed(2),
-      totalRoyalties: totalRoyalties.toFixed(3),
-      songsOwned: parsed.length,
-    });
-
-    setLoading(false);
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setLoading(false);
+    }
   };
 
   useEffect(() => {
