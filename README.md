@@ -1,5 +1,9 @@
 # Melodia - Decentralized Music Royalty Platform
 
+<p align="center">
+  <img src="frontend/public/melodia_logo.png" alt="Melodia Logo" width="200"/>
+</p>
+
 Platform Web3 untuk tokenisasi royalti musik. Musisi dapat menjual bagian kepemilikan royalti lagu kepada investor/penggemar secara transparan menggunakan Ethereum blockchain.
 
 ## Fitur Utama
