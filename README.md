@@ -6,6 +6,8 @@
 
 Platform Web3 untuk tokenisasi royalti musik. Musisi dapat menjual bagian kepemilikan royalti lagu kepada investor/penggemar secara transparan menggunakan Ethereum blockchain.
 
+🌐 **Live Demo**: [https://melodia-eth.netlify.app](https://melodia-eth.netlify.app)
+
 ## Fitur Utama
 
 - **Creator Hub**: Deploy kontrak royalti untuk lagu baru
