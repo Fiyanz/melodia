@@ -13,18 +13,31 @@ export default function HomePage({ account, onConnect }) {
   useEffect(() => {
     async function fetchStats() {
       try {
+        let provider;
         if (typeof window.ethereum !== "undefined") {
-          const provider = new ethers.BrowserProvider(window.ethereum);
+          provider = new ethers.BrowserProvider(window.ethereum);
+        } else {
+          provider = new ethers.JsonRpcProvider("https://ethereum-sepolia.publicnode.com");
+        }
+        
+        const contract = new ethers.Contract(
+          CONTRACTS.musicIPNFT.address,
+          CONTRACTS.musicIPNFT.abi,
+          provider
+        );
+        const total = await contract.tokenCounter();
+        setStats(prev => ({ ...prev, totalSongs: total.toString() }));
+      } catch (error) {
+        try {
+          const fallbackProvider = new ethers.JsonRpcProvider("https://ethereum-sepolia.publicnode.com");
           const contract = new ethers.Contract(
             CONTRACTS.musicIPNFT.address,
             CONTRACTS.musicIPNFT.abi,
-            provider
+            fallbackProvider
           );
           const total = await contract.tokenCounter();
           setStats(prev => ({ ...prev, totalSongs: total.toString() }));
-        }
-      } catch (error) {
-        // console.error("Error fetching stats:", error);
+        } catch (e) {}
       }
     }
     fetchStats();

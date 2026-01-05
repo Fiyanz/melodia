@@ -16,6 +16,8 @@ export default function SongDetail() {
   const [userBalance, setUserBalance] = useState("0");
   const [totalSupply, setTotalSupply] = useState("0");
   const [loading, setLoading] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [newPrice, setNewPrice] = useState("");
 
   async function connectWallet() {
     if (!window.ethereum) {
@@ -99,6 +101,11 @@ export default function SongDetail() {
         if (account) {
           const bal = await royalty.balanceOf(account);
           setUserBalance(ethers.formatEther(bal));
+          
+          try {
+            const admin = await royalty.admin();
+            setIsOwner(account.toLowerCase() === admin.toLowerCase());
+          } catch (e) {}
         }
       }
     } catch (err) {
@@ -145,6 +152,30 @@ export default function SongDetail() {
         toast.error("Transaction cancelled");
       } else {
         toast.error("Transaction failed: " + (err.reason || err.shortMessage || err.message));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function setPrice() {
+    if (!signer || !royaltyContract || !newPrice) return;
+
+    try {
+      setLoading(true);
+      const royaltyWithSigner = royaltyContract.connect(signer);
+      const priceWei = ethers.parseEther(newPrice);
+      const tx = await royaltyWithSigner.setPricePerShare(priceWei);
+      await tx.wait();
+      toast.success("Price updated successfully!");
+      setNewPrice("");
+      loadSong();
+    } catch (err) {
+      console.error(err);
+      if (err.code === "ACTION_REJECTED") {
+        toast.error("Transaction cancelled");
+      } else {
+        toast.error("Failed to set price");
       }
     } finally {
       setLoading(false);
@@ -266,6 +297,30 @@ export default function SongDetail() {
               >
                 Connect Wallet to Buy
               </button>
+            )}
+
+            {isOwner && (
+              <div className="mt-6 p-4 bg-purple-900/30 border border-purple-500/30 rounded-xl">
+                <p className="text-sm text-purple-300 mb-3">Owner Controls</p>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.00001"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-sm"
+                    placeholder="New price (ETH)"
+                  />
+                  <button
+                    onClick={setPrice}
+                    disabled={loading || !newPrice}
+                    className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold disabled:opacity-50"
+                  >
+                    Set Price
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
