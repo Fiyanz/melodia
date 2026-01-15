@@ -18,7 +18,7 @@ const MANTLE_SEPOLIA = {
 
 export async function getSigner() {
   if (!window.ethereum) {
-    throw new Error("MetaMask tidak ditemukan! Silakan install MetaMask extension.");
+    throw new Error("MetaMask not found! Please install MetaMask extension.");
   }
 
   // 1️⃣ Request accounts first
@@ -26,7 +26,7 @@ export async function getSigner() {
     await window.ethereum.request({ method: "eth_requestAccounts" });
   } catch (err) {
     if (err.code === 4001) {
-      throw new Error("User menolak koneksi wallet.");
+      throw new Error("User rejected wallet connection.");
     }
     throw err;
   }
@@ -46,10 +46,10 @@ export async function getSigner() {
           params: [MANTLE_SEPOLIA],
         });
       } catch (addError) {
-        throw new Error("Gagal menambahkan Mantle Sepolia network.");
+        throw new Error("Failed to add Mantle Sepolia network.");
       }
     } else if (error.code === 4001) {
-      throw new Error("User menolak switch network.");
+      throw new Error("User rejected network switch.");
     } else {
       throw error;
     }
@@ -62,7 +62,7 @@ export async function getSigner() {
   // 5️⃣ Validate network
   const network = await provider.getNetwork();
   if (network.chainId !== 5003n) {
-    throw new Error("Network salah. Silakan switch ke Mantle Sepolia.");
+    throw new Error("Wrong network. Please switch to Mantle Sepolia.");
   }
 
   return signer;

@@ -7,7 +7,6 @@ export default function ConnectWallet({ onConnected }) {
       const address = await signer.getAddress();
       onConnected(address);
     } catch (err) {
-      console.error(err);
       alert(err.message);
     }
   };

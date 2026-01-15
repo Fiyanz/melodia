@@ -17,7 +17,7 @@ export default function HomePage({ account, onConnect }) {
         if (typeof window.ethereum !== "undefined") {
           provider = new ethers.BrowserProvider(window.ethereum);
         } else {
-          provider = new ethers.JsonRpcProvider("https://ethereum-sepolia.publicnode.com");
+          provider = new ethers.JsonRpcProvider("https://rpc.sepolia.mantle.xyz");
         }
         
         const contract = new ethers.Contract(
@@ -29,7 +29,7 @@ export default function HomePage({ account, onConnect }) {
         setStats(prev => ({ ...prev, totalSongs: total.toString() }));
       } catch (error) {
         try {
-          const fallbackProvider = new ethers.JsonRpcProvider("https://ethereum-sepolia.publicnode.com");
+          const fallbackProvider = new ethers.JsonRpcProvider("https://rpc.sepolia.mantle.xyz");
           const contract = new ethers.Contract(
             CONTRACTS.musicIPNFT.address,
             CONTRACTS.musicIPNFT.abi,

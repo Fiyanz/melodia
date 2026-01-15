@@ -26,45 +26,24 @@ export default function App() {
   const [account, setAccount] = useState(null);
   const [signer, setSigner] = useState(null);
 
-  // ... connectWallet logic remain the same ...
+  const silentConnect = async () => {
+    try {
+      if (!window.ethereum) return;
+      
+      const signer = await getSigner();
+      const address = await signer.getAddress();
 
-  // Persist connection & Listen for changes
-  useEffect(() => {
-    async function checkConnection() {
-      try {
-        if (typeof window.ethereum !== "undefined") {
-          const accounts = await window.ethereum.request({ method: "eth_accounts" });
-          if (accounts.length > 0) {
-             connectWallet();
-          }
-          
-          // Listen for account changes
-          window.ethereum.on('accountsChanged', (accounts) => {
-             if (accounts.length > 0) connectWallet();
-             else {
-                 setAccount(null);
-                 setSigner(null);
-             }
-          });
-        }
-      } catch (err) {
-        console.warn("Wallet check failed:", err);
-      }
+      setSigner(signer);
+      setAccount(address);
+    } catch (err) {
+      // Silent fail for auto-reconnect
     }
-    checkConnection();
-    
-    // Cleanup listeners (optional, but good practice)
-    return () => {
-        if (window.ethereum && window.ethereum.removeListener) {
-            window.ethereum.removeListener('accountsChanged', checkConnection);
-        }
-    };
-  }, []);
+  };
 
   const connectWallet = async () => {
     try {
       if (!window.ethereum) {
-        toast.error("MetaMask tidak ditemukan! Silakan install MetaMask extension.");
+        toast.error("MetaMask not found! Please install MetaMask extension.");
         return;
       }
       
@@ -74,19 +53,50 @@ export default function App() {
       setSigner(signer);
       setAccount(address);
 
-      toast.success("Wallet terhubung!");
-      console.log("Connected:", address);
+      toast.success("Wallet connected!");
     } catch (err) {
-      console.error(err.message);
-      if (err.message.includes("user rejected")) {
-        toast.error("Koneksi ditolak oleh user.");
+      if (err.message.includes("menolak")) {
+        toast.error("Connection rejected by user.");
       } else if (err.message.includes("Network salah")) {
-        toast.error("Silakan switch ke Mantle Sepolia network.");
+        toast.error("Please switch to Mantle Sepolia network.");
       } else {
-        toast.error("Gagal connect wallet: " + err.message);
+        toast.error("Failed to connect wallet: " + err.message);
       }
     }
   };
+
+  // Persist connection & Listen for changes (uses silent connect)
+  useEffect(() => {
+    async function checkConnection() {
+      try {
+        if (typeof window.ethereum !== "undefined") {
+          const accounts = await window.ethereum.request({ method: "eth_accounts" });
+          if (accounts.length > 0) {
+             silentConnect(); // Use silent connect - no toast
+          }
+          
+          // Listen for account changes
+          window.ethereum.on('accountsChanged', (accounts) => {
+             if (accounts.length > 0) silentConnect(); // Use silent connect
+             else {
+                 setAccount(null);
+                 setSigner(null);
+             }
+          });
+        }
+      } catch (err) {
+        // Silent fail
+      }
+    }
+    checkConnection();
+    
+    // Cleanup listeners
+    return () => {
+        if (window.ethereum && window.ethereum.removeListener) {
+            window.ethereum.removeListener('accountsChanged', checkConnection);
+        }
+    };
+  }, []);
 
   // --- NETWORK CHECK ---
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);

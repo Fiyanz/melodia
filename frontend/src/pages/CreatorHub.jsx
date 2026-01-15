@@ -111,7 +111,6 @@ export default function CreatorHub() {
          await tx.wait();
          toast.success("Price set successfully!");
      } catch (err) {
-         console.error(err);
          toast.error("Failed to set price");
      }
   }
@@ -122,12 +121,12 @@ export default function CreatorHub() {
 
   const validate = () => {
     let newErrors = {};
-    if (!form.tokenName) newErrors.tokenName = "Token Name wajib diisi";
-    if (!form.tokenSymbol) newErrors.tokenSymbol = "Token Symbol wajib diisi";
-    if (!form.title) newErrors.title = "Song Title wajib diisi";
-    if (!form.artist) newErrors.artist = "Artist Name wajib diisi";
-    if (!form.totalRoyaltyValue || isNaN(form.totalRoyaltyValue)) newErrors.totalRoyaltyValue = "Total Royalty harus angka valid";
-    if (!form.totalShares || isNaN(form.totalShares)) newErrors.totalShares = "Total Shares harus angka valid";
+    if (!form.tokenName) newErrors.tokenName = "Token Name is required";
+    if (!form.tokenSymbol) newErrors.tokenSymbol = "Token Symbol is required";
+    if (!form.title) newErrors.title = "Song Title is required";
+    if (!form.artist) newErrors.artist = "Artist Name is required";
+    if (!form.totalRoyaltyValue || isNaN(form.totalRoyaltyValue)) newErrors.totalRoyaltyValue = "Total Royalty must be a valid number";
+    if (!form.totalShares || isNaN(form.totalShares)) newErrors.totalShares = "Total Shares must be a valid number";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -144,7 +143,7 @@ export default function CreatorHub() {
             <form onSubmit={(e) => {
                 e.preventDefault();
                 if (validate()) handleDeploy(e);
-                else toast.error("Mohon perbaiki input yang salah");
+                else toast.error("Please fix invalid inputs");
             }} className="space-y-4">
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

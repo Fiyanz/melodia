@@ -33,7 +33,6 @@ export default function AdminDashboard() {
 
           fetchRequests();
       } catch (err) {
-          console.error("Auth Fail:", err);
           navigate("/admin");
       }
   }
@@ -60,14 +59,13 @@ export default function AdminDashboard() {
                 royaltyContract: req.royaltyContract || req[5]
               };
           } catch (err) {
-              console.error("Error parsing request:", req, err);
               return null;
           }
       }).filter(Boolean);
 
       setRequests(formatted);
     } catch (error) {
-      console.error("Error fetching requests:", error);
+      // Failed to fetch
     } finally {
       setLoading(false);
     }
@@ -90,7 +88,6 @@ export default function AdminDashboard() {
       toast.success(`Request #${requestId} Approved!`);
       fetchRequests(); // Refresh list
     } catch (error) {
-      console.error(error);
       toast.error("Approval failed");
     } finally {
       setProcessing(null);

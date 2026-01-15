@@ -43,7 +43,6 @@ export default function AdminLoginPage() {
             try {
                 owner = await nftContract.owner();
             } catch (err) {
-                console.error("Contract Error:", err);
                 toast.error("Error: Could not find Contract. Wrong Network?");
                 return;
             }
@@ -53,11 +52,9 @@ export default function AdminLoginPage() {
                 toast.success("Welcome, Admin!");
                 navigate("/admin/dashboard");
             } else {
-                console.warn(`User: ${address}, Owner: ${owner}`);
                 toast.error(`Unauthorized! Owner is: ${owner.slice(0,6)}...`);
             }
         } catch (error) {
-            console.error(error);
             if (error.code === "ACTION_REJECTED" || error.code === 4001) {
                 toast.error("Connection cancelled");
             } else {
@@ -108,7 +105,6 @@ export default function AdminLoginPage() {
             // Auto login attempt after switch
             login();
         } catch (error) {
-            console.error(error);
             toast.error("Failed to switch account");
         }
     }

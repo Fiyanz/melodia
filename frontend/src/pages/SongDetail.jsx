@@ -4,6 +4,9 @@ import { ethers } from "ethers";
 import { toast } from "react-hot-toast";
 import { CONTRACTS } from "../config/contracts";
 
+// Mantle Sepolia RPC for read-only access
+const MANTLE_RPC = "https://rpc.sepolia.mantle.xyz";
+
 export default function SongDetail() {
   const { id } = useParams();
 
@@ -19,21 +22,34 @@ export default function SongDetail() {
   const [isOwner, setIsOwner] = useState(false);
   const [newPrice, setNewPrice] = useState("");
 
-  async function connectWallet() {
-    if (!window.ethereum) {
-      alert("MetaMask tidak ditemukan");
-      return;
+  // Initialize - check if wallet already connected
+  useEffect(() => {
+    async function init() {
+      // Start with read-only provider
+      const readOnlyProvider = new ethers.JsonRpcProvider(MANTLE_RPC);
+      setProvider(readOnlyProvider);
+      
+      // Check if wallet is already connected
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: "eth_accounts" });
+          if (accounts.length > 0) {
+            // Wallet already connected, use BrowserProvider
+            const prov = new ethers.BrowserProvider(window.ethereum);
+            const sign = await prov.getSigner();
+            const addr = await sign.getAddress();
+            
+            setProvider(prov);
+            setSigner(sign);
+            setAccount(addr);
+          }
+        } catch (err) {
+          // Silent fail
+        }
+      }
     }
-
-    const prov = new ethers.BrowserProvider(window.ethereum);
-    await prov.send("eth_requestAccounts", []);
-    const sign = await prov.getSigner();
-    const addr = await sign.getAddress();
-
-    setProvider(prov);
-    setSigner(sign);
-    setAccount(addr);
-  }
+    init();
+  }, []);
 
   const [pricePerShare, setPricePerShare] = useState("0");
 
@@ -109,7 +125,6 @@ export default function SongDetail() {
         }
       }
     } catch (err) {
-      console.error("Error loading song:", err);
       setError("Failed to load song data");
     }
   }
@@ -145,7 +160,6 @@ export default function SongDetail() {
 
       loadSong();
     } catch (err) {
-      console.error(err);
       if (err.code === "INSUFFICIENT_FUNDS") {
         toast.error("Insufficient ETH balance for this transaction");
       } else if (err.code === "ACTION_REJECTED") {
@@ -171,7 +185,6 @@ export default function SongDetail() {
       setNewPrice("");
       loadSong();
     } catch (err) {
-      console.error(err);
       if (err.code === "ACTION_REJECTED") {
         toast.error("Transaction cancelled");
       } else {
@@ -182,9 +195,7 @@ export default function SongDetail() {
     }
   }
 
-  useEffect(() => {
-    connectWallet();
-  }, []);
+  // Load song when provider is ready (works with read-only provider)
 
   useEffect(() => {
     if (provider) loadSong();
@@ -291,12 +302,9 @@ export default function SongDetail() {
             </div>
 
             {!account && (
-              <button
-                onClick={connectWallet}
-                className="w-full mt-4 px-6 py-3 bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition"
-              >
-                Connect Wallet to Buy
-              </button>
+              <p className="mt-4 text-center text-gray-400 text-sm">
+                Connect wallet via navbar to buy shares
+              </p>
             )}
 
             {isOwner && (

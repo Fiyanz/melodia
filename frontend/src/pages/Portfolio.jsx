@@ -20,7 +20,7 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
 
   const connectWallet = async () => {
-    if (!window.ethereum) return alert("Metamask tidak ditemukan");
+    if (!window.ethereum) return alert("MetaMask not found");
     const accounts = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
@@ -92,7 +92,7 @@ export default function Portfolio() {
         });
 
     } catch (err) {
-        console.error(err);
+        // Failed to load
     } finally {
         setLoading(false);
     }

@@ -15,7 +15,7 @@ export default function Marketplace() {
         if (typeof window.ethereum !== "undefined") {
           provider = new ethers.BrowserProvider(window.ethereum);
         } else {
-          provider = new ethers.JsonRpcProvider("https://ethereum-sepolia.publicnode.com");
+          provider = new ethers.JsonRpcProvider("https://rpc.sepolia.mantle.xyz");
         }
         
         const contract = new ethers.Contract(
@@ -42,10 +42,10 @@ export default function Marketplace() {
     
         setSongs(items);
     } catch (err) {
-        console.error("Marketplace Load Error:", err);
+        // Try fallback
         
         try {
-          const fallbackProvider = new ethers.JsonRpcProvider("https://ethereum-sepolia.publicnode.com");
+          const fallbackProvider = new ethers.JsonRpcProvider("https://rpc.sepolia.mantle.xyz");
           const contract = new ethers.Contract(
             CONTRACTS.musicIPNFT.address,
             CONTRACTS.musicIPNFT.abi,
@@ -68,7 +68,7 @@ export default function Marketplace() {
           }
           setSongs(items);
         } catch (fallbackErr) {
-          console.error("Fallback also failed:", fallbackErr);
+          // Fallback failed
         }
     } finally {
         setLoading(false);
